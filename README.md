@@ -79,9 +79,9 @@ npm run test
 1. Source Code Repository (Required)
 	 - Public GitHub/GitLab URL: ADD_LINK_HERE
 2. Video Demonstration (Required)
-	 - Loom/YouTube URL: ADD_VIDEO_LINK_HERE
-3. Live Demo (Optional)
-	 - Deployed URL (Vercel/Netlify): ADD_LIVE_LINK_HERE
+	 - Demo Video: https://youtu.be/_2BpGD-wWEo?si=kaSw2EghB09Dlbn9
+3. Live Demo
+	 - Live Link: https://calender-task-ecru.vercel.app/
 
 ## Notes on Scope
 

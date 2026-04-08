@@ -97,7 +97,7 @@ const CalendarGrid = ({
           <button
             key={day.toISOString()}
             style={{
-              height: "36px",
+              height: "42px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",

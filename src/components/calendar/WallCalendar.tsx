@@ -90,7 +90,7 @@ const WallCalendar = () => {
       <section
         style={{
           ...theme,
-          width: "380px",
+          width: "580px",
           background: "white",
           borderRadius: "4px",
           overflow: "hidden",
@@ -159,7 +159,7 @@ const WallCalendar = () => {
         </div>
 
         {/* Bottom white section: Notes | Grid */}
-        <div style={{ display: "flex", background: "white", height: "260px" }}>
+        <div style={{ display: "flex", background: "white", height: "300px" }}>
           {/* Notes — left ~35%, scrollable */}
           <div style={{ width: "35%", paddingLeft: "16px", paddingRight: "8px", display: "flex", flexDirection: "column", overflow: "hidden", paddingTop: "16px", paddingBottom: "16px" }}>
             <NotesSection

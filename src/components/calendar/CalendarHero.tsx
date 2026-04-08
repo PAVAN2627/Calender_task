@@ -16,7 +16,7 @@ const CalendarHero = ({ currentDate, onPrevMonth, onNextMonth, direction }: Cale
   const year = format(currentDate, "yyyy");
 
   return (
-    <div className="relative w-full overflow-hidden bg-white" style={{ height: "240px" }}>
+    <div className="relative w-full overflow-hidden bg-white" style={{ height: "300px" }}>
 
       {/* Left side: photo, clipped to ~42% width */}
       <div className="absolute inset-y-0 left-0 overflow-hidden" style={{ width: "42%" }}>

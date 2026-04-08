@@ -29,10 +29,8 @@ const NotesSection = ({ currentDate, rangeStart, rangeEnd }: NotesSectionProps) 
   const addNote = () => {
     const text = draft.trim();
     if (!text) { setEditing(false); return; }
-
     const scope: NoteEntry["scope"] =
       rangeStart && rangeEnd ? "range" : rangeStart ? "day" : "month";
-
     const note: NoteEntry = {
       id: Date.now().toString(),
       text,
@@ -42,7 +40,6 @@ const NotesSection = ({ currentDate, rangeStart, rangeEnd }: NotesSectionProps) 
       rangeStart: rangeStart?.toISOString(),
       rangeEnd: rangeEnd?.toISOString(),
     };
-
     const updated = [...notes, note];
     setNotes(updated);
     saveNotes(monthKey, updated);
@@ -56,18 +53,14 @@ const NotesSection = ({ currentDate, rangeStart, rangeEnd }: NotesSectionProps) 
     saveNotes(monthKey, updated);
   };
 
-  // Human-readable label for each note
   const getLabel = (note: NoteEntry): string => {
-    if (note.scope === "range" && note.rangeStart && note.rangeEnd) {
+    if (note.scope === "range" && note.rangeStart && note.rangeEnd)
       return `${format(new Date(note.rangeStart), "MMM d")} – ${format(new Date(note.rangeEnd), "MMM d")}`;
-    }
-    if (note.scope === "day" && note.day) {
+    if (note.scope === "day" && note.day)
       return format(new Date(note.day), "MMM d");
-    }
     return format(currentDate, "MMMM");
   };
 
-  // Current selection label shown in the input hint
   const currentLabel =
     rangeStart && rangeEnd
       ? `${format(rangeStart, "MMM d")} – ${format(rangeEnd, "MMM d")}`
@@ -75,17 +68,14 @@ const NotesSection = ({ currentDate, rangeStart, rangeEnd }: NotesSectionProps) 
       ? format(rangeStart, "MMM d")
       : "month";
 
-  // Always show 7 ruled lines; notes fill from top, blanks fill the rest
-  const LINES = 7;
-  const blankCount = Math.max(0, LINES - notes.length);
-
   return (
-    <div className="flex flex-col h-full">
-      <p className="text-[10px] font-bold tracking-[0.2em] text-gray-500 uppercase mb-2">
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+      <p className="text-[10px] font-bold tracking-[0.2em] text-gray-500 uppercase mb-2" style={{ flexShrink: 0 }}>
         Notes
       </p>
 
-      <div className="flex-1 overflow-y-auto">
+      {/* Scrollable notes list */}
+      <div style={{ flex: 1, overflowY: "auto", minHeight: 0 }}>
         <AnimatePresence initial={false}>
           {notes.map((note) => (
             <motion.div
@@ -98,14 +88,8 @@ const NotesSection = ({ currentDate, rangeStart, rangeEnd }: NotesSectionProps) 
             >
               <div className="flex items-start gap-1">
                 <div className="flex-1 min-w-0">
-                  <p className="text-[11px] text-gray-800 leading-tight break-words">
-                    {note.text}
-                  </p>
-                  {/* Date label in accent color */}
-                  <span
-                    className="text-[9px] font-semibold tracking-wide"
-                    style={{ color: "hsl(var(--calendar-accent))" }}
-                  >
+                  <p className="text-[11px] text-gray-800 leading-tight break-words">{note.text}</p>
+                  <span className="text-[9px] font-semibold tracking-wide" style={{ color: "hsl(var(--calendar-accent))" }}>
                     {getLabel(note)}
                   </span>
                 </div>
@@ -119,57 +103,49 @@ const NotesSection = ({ currentDate, rangeStart, rangeEnd }: NotesSectionProps) 
             </motion.div>
           ))}
         </AnimatePresence>
-
-        {/* Remaining blank ruled lines */}
-        {Array.from({ length: blankCount }).map((_, i) => (
-          <div
-            key={`blank-${i}`}
-            className="border-b border-gray-200 cursor-text"
-            style={{ paddingTop: "5px", paddingBottom: "5px" }}
-            onClick={() => setEditing(true)}
-          />
-        ))}
       </div>
 
-      {/* Add note */}
-      {editing ? (
-        <div className="mt-2 flex gap-1 items-center">
-          <input
-            ref={inputRef}
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") addNote();
-              if (e.key === "Escape") { setEditing(false); setDraft(""); }
-            }}
-            placeholder={`Note for ${currentLabel}…`}
-            className="flex-1 text-[10px] border-b border-gray-400 outline-none bg-transparent py-0.5 min-w-0"
-          />
+      {/* Add note — pinned at bottom */}
+      <div style={{ flexShrink: 0, paddingTop: "6px" }}>
+        {editing ? (
+          <div className="flex gap-1 items-center">
+            <input
+              ref={inputRef}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") addNote();
+                if (e.key === "Escape") { setEditing(false); setDraft(""); }
+              }}
+              placeholder={`Note for ${currentLabel}…`}
+              className="flex-1 text-[10px] border-b border-gray-400 outline-none bg-transparent py-0.5 min-w-0"
+            />
+            <button
+              onMouseDown={(e) => { e.preventDefault(); addNote(); }}
+              style={{
+                fontSize: "10px",
+                padding: "3px 8px",
+                borderRadius: "4px",
+                background: "hsl(var(--calendar-accent))",
+                color: "white",
+                fontWeight: 700,
+                border: "none",
+                cursor: "pointer",
+                flexShrink: 0,
+              }}
+            >
+              Add
+            </button>
+          </div>
+        ) : (
           <button
-            onMouseDown={(e) => { e.preventDefault(); addNote(); }}
-            style={{
-              fontSize: "10px",
-              padding: "3px 8px",
-              borderRadius: "4px",
-              background: "hsl(var(--calendar-accent))",
-              color: "white",
-              fontWeight: 700,
-              border: "none",
-              cursor: "pointer",
-              flexShrink: 0,
-            }}
+            onClick={() => setEditing(true)}
+            className="text-[10px] text-gray-400 hover:text-gray-600 transition-colors text-left"
           >
-            Add
+            + add note
           </button>
-        </div>
-      ) : (
-        <button
-          onClick={() => setEditing(true)}
-          className="mt-2 text-[10px] text-gray-400 hover:text-gray-600 transition-colors text-left"
-        >
-          + add note
-        </button>
-      )}
+        )}
+      </div>
     </div>
   );
 };

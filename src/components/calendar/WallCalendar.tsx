@@ -159,9 +159,9 @@ const WallCalendar = () => {
         </div>
 
         {/* Bottom white section: Notes | Grid */}
-        <div style={{ display: "flex", background: "white", padding: "16px 0 16px 0" }}>
-          {/* Notes — left ~35% */}
-          <div style={{ width: "35%", paddingLeft: "16px", paddingRight: "8px" }}>
+        <div style={{ display: "flex", background: "white", height: "260px" }}>
+          {/* Notes — left ~35%, scrollable */}
+          <div style={{ width: "35%", paddingLeft: "16px", paddingRight: "8px", display: "flex", flexDirection: "column", overflow: "hidden", paddingTop: "16px", paddingBottom: "16px" }}>
             <NotesSection
               currentDate={currentDate}
               rangeStart={rangeStart}
@@ -170,7 +170,7 @@ const WallCalendar = () => {
           </div>
 
           {/* Grid — right ~65% */}
-          <div style={{ width: "65%" }}>
+          <div style={{ width: "65%", overflow: "hidden" }}>
             <CalendarGrid
               currentDate={currentDate}
               rangeStart={rangeStart}

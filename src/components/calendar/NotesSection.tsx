@@ -9,8 +9,6 @@ interface NotesSectionProps {
   rangeEnd: Date | null;
 }
 
-const TOTAL_LINES = 7;
-
 const NotesSection = ({ currentDate, rangeStart, rangeEnd }: NotesSectionProps) => {
   const monthKey = format(currentDate, "yyyy-MM");
   const [notes, setNotes] = useState<NoteEntry[]>([]);
@@ -30,20 +28,21 @@ const NotesSection = ({ currentDate, rangeStart, rangeEnd }: NotesSectionProps) 
 
   const addNote = () => {
     const text = draft.trim();
-    if (!text) {
-      setEditing(false);
-      return;
-    }
+    if (!text) { setEditing(false); return; }
+
     const scope: NoteEntry["scope"] =
       rangeStart && rangeEnd ? "range" : rangeStart ? "day" : "month";
+
     const note: NoteEntry = {
       id: Date.now().toString(),
       text,
       date: monthKey,
       scope,
+      day: scope === "day" && rangeStart ? rangeStart.toISOString() : undefined,
       rangeStart: rangeStart?.toISOString(),
       rangeEnd: rangeEnd?.toISOString(),
     };
+
     const updated = [...notes, note];
     setNotes(updated);
     saveNotes(monthKey, updated);
@@ -57,49 +56,82 @@ const NotesSection = ({ currentDate, rangeStart, rangeEnd }: NotesSectionProps) 
     saveNotes(monthKey, updated);
   };
 
-  const blankCount = Math.max(0, TOTAL_LINES - notes.length);
+  // Human-readable label for each note
+  const getLabel = (note: NoteEntry): string => {
+    if (note.scope === "range" && note.rangeStart && note.rangeEnd) {
+      return `${format(new Date(note.rangeStart), "MMM d")} – ${format(new Date(note.rangeEnd), "MMM d")}`;
+    }
+    if (note.scope === "day" && note.day) {
+      return format(new Date(note.day), "MMM d");
+    }
+    return format(currentDate, "MMMM");
+  };
+
+  // Current selection label shown in the input hint
+  const currentLabel =
+    rangeStart && rangeEnd
+      ? `${format(rangeStart, "MMM d")} – ${format(rangeEnd, "MMM d")}`
+      : rangeStart
+      ? format(rangeStart, "MMM d")
+      : "month";
+
+  // Always show 7 ruled lines; notes fill from top, blanks fill the rest
+  const LINES = 7;
+  const blankCount = Math.max(0, LINES - notes.length);
 
   return (
     <div className="flex flex-col h-full">
-      <p className="text-[10px] font-bold tracking-[0.2em] text-gray-500 uppercase mb-3">
+      <p className="text-[10px] font-bold tracking-[0.2em] text-gray-500 uppercase mb-2">
         Notes
       </p>
 
-      {/* Note lines */}
-      <div className="flex-1">
-        <AnimatePresence>
+      <div className="flex-1 overflow-y-auto">
+        <AnimatePresence initial={false}>
           {notes.map((note) => (
             <motion.div
               key={note.id}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="group flex items-center gap-1 border-b border-gray-200 py-[7px]"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="group border-b border-gray-200"
+              style={{ paddingTop: "5px", paddingBottom: "5px" }}
             >
-              <span className="flex-1 text-[10px] text-gray-700 truncate leading-none">
-                {note.text}
-              </span>
-              <button
-                onMouseDown={(e) => { e.preventDefault(); removeNote(note.id); }}
-                className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-400 transition-all"
-              >
-                <X className="w-2.5 h-2.5" />
-              </button>
+              <div className="flex items-start gap-1">
+                <div className="flex-1 min-w-0">
+                  <p className="text-[11px] text-gray-800 leading-tight break-words">
+                    {note.text}
+                  </p>
+                  {/* Date label in accent color */}
+                  <span
+                    className="text-[9px] font-semibold tracking-wide"
+                    style={{ color: "hsl(var(--calendar-accent))" }}
+                  >
+                    {getLabel(note)}
+                  </span>
+                </div>
+                <button
+                  onMouseDown={(e) => { e.preventDefault(); removeNote(note.id); }}
+                  className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-400 transition-all mt-0.5 shrink-0"
+                >
+                  <X className="w-2.5 h-2.5" />
+                </button>
+              </div>
             </motion.div>
           ))}
         </AnimatePresence>
 
-        {/* Blank ruled lines */}
+        {/* Remaining blank ruled lines */}
         {Array.from({ length: blankCount }).map((_, i) => (
           <div
             key={`blank-${i}`}
-            className="border-b border-gray-200 py-[7px] cursor-text"
+            className="border-b border-gray-200 cursor-text"
+            style={{ paddingTop: "5px", paddingBottom: "5px" }}
             onClick={() => setEditing(true)}
           />
         ))}
       </div>
 
-      {/* Add note area */}
+      {/* Add note */}
       {editing ? (
         <div className="mt-2 flex gap-1 items-center">
           <input
@@ -110,10 +142,9 @@ const NotesSection = ({ currentDate, rangeStart, rangeEnd }: NotesSectionProps) 
               if (e.key === "Enter") addNote();
               if (e.key === "Escape") { setEditing(false); setDraft(""); }
             }}
-            placeholder="Type a note…"
-            className="flex-1 text-[11px] border-b border-gray-400 outline-none bg-transparent py-0.5 min-w-0"
+            placeholder={`Note for ${currentLabel}…`}
+            className="flex-1 text-[10px] border-b border-gray-400 outline-none bg-transparent py-0.5 min-w-0"
           />
-          {/* onMouseDown prevents input blur before onClick fires */}
           <button
             onMouseDown={(e) => { e.preventDefault(); addNote(); }}
             style={{

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { NoteEntry, loadNotes, saveNotes, format } from "@/lib/calendarUtils";
@@ -16,17 +16,29 @@ const NotesSection = ({ currentDate, rangeStart, rangeEnd }: NotesSectionProps) 
   const [notes, setNotes] = useState<NoteEntry[]>([]);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setNotes(loadNotes(monthKey));
+    setEditing(false);
+    setDraft("");
   }, [monthKey]);
 
+  useEffect(() => {
+    if (editing) inputRef.current?.focus();
+  }, [editing]);
+
   const addNote = () => {
-    if (!draft.trim()) { setEditing(false); return; }
-    const scope: NoteEntry["scope"] = rangeStart && rangeEnd ? "range" : rangeStart ? "day" : "month";
+    const text = draft.trim();
+    if (!text) {
+      setEditing(false);
+      return;
+    }
+    const scope: NoteEntry["scope"] =
+      rangeStart && rangeEnd ? "range" : rangeStart ? "day" : "month";
     const note: NoteEntry = {
       id: Date.now().toString(),
-      text: draft.trim(),
+      text,
       date: monthKey,
       scope,
       rangeStart: rangeStart?.toISOString(),
@@ -68,7 +80,7 @@ const NotesSection = ({ currentDate, rangeStart, rangeEnd }: NotesSectionProps) 
                 {note.text}
               </span>
               <button
-                onClick={() => removeNote(note.id)}
+                onMouseDown={(e) => { e.preventDefault(); removeNote(note.id); }}
                 className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-400 transition-all"
               >
                 <X className="w-2.5 h-2.5" />
@@ -87,23 +99,34 @@ const NotesSection = ({ currentDate, rangeStart, rangeEnd }: NotesSectionProps) 
         ))}
       </div>
 
-      {/* Add note */}
+      {/* Add note area */}
       {editing ? (
-        <div className="mt-2 flex gap-1">
+        <div className="mt-2 flex gap-1 items-center">
           <input
-            autoFocus
+            ref={inputRef}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter") addNote();
-              if (e.key === "Escape") setEditing(false);
+              if (e.key === "Escape") { setEditing(false); setDraft(""); }
             }}
-            placeholder="Note…"
-            className="flex-1 text-[10px] border-b border-gray-300 outline-none bg-transparent py-0.5"
+            placeholder="Type a note…"
+            className="flex-1 text-[11px] border-b border-gray-400 outline-none bg-transparent py-0.5 min-w-0"
           />
+          {/* onMouseDown prevents input blur before onClick fires */}
           <button
-            onClick={addNote}
-            className="text-[9px] px-1.5 py-0.5 rounded bg-gray-800 text-white font-semibold"
+            onMouseDown={(e) => { e.preventDefault(); addNote(); }}
+            style={{
+              fontSize: "10px",
+              padding: "3px 8px",
+              borderRadius: "4px",
+              background: "hsl(var(--calendar-accent))",
+              color: "white",
+              fontWeight: 700,
+              border: "none",
+              cursor: "pointer",
+              flexShrink: 0,
+            }}
           >
             Add
           </button>
